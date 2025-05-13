@@ -1,19 +1,16 @@
 import React from "react"
 
-function CatInformation({ breed, images, colour }) {
-    const filteredImages = images.filter(image =>
-    !colour || image.url.toLowerCase().includes(colour)
-  )
+function CatInformation({ breed, images }) {
 
     return (
     <div className="cat-info">
             <div className="image-grid">
-        {filteredImages.length ? (
-          filteredImages.map((image, idx) => (
-            <img key={idx} src={image.url} alt={breed.name} height={200} width={200}limit={6}/>
+        {images.length ? (
+          images.map((image, index) => (
+            <img key={index} src={image.url} alt={breed.name} height={200} width={200}/>
           ))
         ) : (
-          <p>No matching images for that colour.</p>
+          <p>No matching images for that temperament.</p>
         )}
       </div>
       <h2>{breed.name}</h2>

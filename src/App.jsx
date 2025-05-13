@@ -7,7 +7,7 @@ const API_KEY = 'live_N0xF7a5yzLeMcFozJMX10WsduTHZuuyHfxFuVcdik2krNnau5ajy6YsI4m
 function App() {
   const [breeds, setBreeds] = useState([])
   const [selectBreeds, setSelectBreeds] = useState([])
-  const [selectColour, setSelectColour] = useState([])
+  const [selectTemperament, setSelectTemperament] = useState([])
   const [breedInformation, setBreedInformation] = useState(null)
 
   useEffect(() => {
@@ -19,24 +19,44 @@ function App() {
   }, [])
 
   async function submitButton(e) {
-    e.preventDefault()
-    if (!selectBreeds) {
+  e.preventDefault()
+
+  let breed = null
+
+  if (selectBreeds) {
+    breed = breeds.find(b => b.id === selectBreeds)
+    if (selectTemperament && !breed.temperament.toLowerCase().includes(selectTemperament)) {
+      setBreedInformation(null)
       return
     }
-
-    const breed = breeds.find(b => b.id === selectBreeds)
-    const res = await fetch(
-      `https://api.thecatapi.com/v1/images/search?limit=6&breed_ids=${selectBreeds}`,
-      { headers: { 'x-api-key': API_KEY } }
+  } else if (selectTemperament) {
+    breed = breeds.find(b =>
+      b.temperament.toLowerCase().includes(selectTemperament)
     )
-    const images = await res.json()
-
-    setBreedInformation({ breed, images })
   }
+
+  if (!breed) {
+    setBreedInformation(null)
+    return
+  }
+
+  const res = await fetch(
+    `https://api.thecatapi.com/v1/images/search?limit=6&breed_ids=${breed.id}`,
+    { headers: { 'x-api-key': API_KEY } }
+  )
+  const images = await res.json()
+
+  setBreedInformation({ breed, images })
+}
+
+const allTemperaments = Array.from(
+  new Set(breeds.flatMap(b => b.temperament?.split(', ') || []))
+).sort()
 
   return (
     <div className="app">
-      <h1>Cat Browser 🐱</h1>
+      <h1>Cat Browser</h1>
+      <p>Can either filter by breed or temperament</p>
       <form onSubmit={submitButton}>
         <label>
           Select breed:
@@ -44,7 +64,7 @@ function App() {
             value={selectBreeds}
             onChange={e => setSelectBreeds(e.target.value)}
           >
-            <option value="">-- Choose a breed --</option>
+            <option value=""> -- Choose a breed -- </option>
             {breeds.map(b => (
               <option key={b.id} value={b.id}>
                 {b.name}
@@ -53,22 +73,27 @@ function App() {
           </select>
         </label>
         <label>
-          Filter by colour:
-          <input
-            type="text"
-            placeholder="e.g., white, black"
-            value={selectColour}
-            onChange={e => setSelectColour(e.target.value.toLowerCase())}
-          />
-        </label>
-        <button type="submit">View Breed</button>
+          Filter by Temperament:
+          <select
+          value={selectTemperament}
+          onChange={e => setSelectTemperament(e.target.value.toLowerCase())}
+          >
+            <option value="">-- Any temperament --</option>
+            {allTemperaments.map(temp => (
+              <option key={temp} value={temp.toLowerCase()}>
+                {temp}
+                </option>
+              ))}
+              </select>
+          </label>
+          <button type="submit">View Breed</button>
       </form>
 
       {breedInformation && (
         <CatInformation
           breed={breedInformation.breed}
           images={breedInformation.images}
-          colour={selectColour}
+          temperament={selectTemperament}
         />
       )}
     </div>
