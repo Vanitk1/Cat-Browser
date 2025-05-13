@@ -1,55 +1,77 @@
 import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import catInformation from "./catInfo"
+import CatInformation from './Components/catInfo'
 
-const API_KEY="live_N0xF7a5yzLeMcFozJMX10WsduTHZuuyHfxFuVcdik2krNnau5ajy6YsI4moUPCVE"
+const API_KEY = 'live_N0xF7a5yzLeMcFozJMX10WsduTHZuuyHfxFuVcdik2krNnau5ajy6YsI4moUPCVE'
 
 function App() {
-  const [breeds, setBreeds] = useState([]);
-  const [selectBreeds, setSelectBreeds] = useState([]);
-  const [selectColour, setSelectColourS] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [breedInformation, setBreedInformation] = useState([]);
+  const [breeds, setBreeds] = useState([])
+  const [selectBreeds, setSelectBreeds] = useState([])
+  const [selectColour, setSelectColour] = useState([])
+  const [breedInformation, setBreedInformation] = useState(null)
 
   useEffect(() => {
-    fetch("https://api.thecatapi.com/v1/breeds", { headers: { 'x-api-key': API_KEY }})
-    .then((response) => {
-      return response.json();
+    fetch('https://api.thecatapi.com/v1/breeds', {
+      headers: { 'x-api-key': API_KEY },
     })
-    .then((body) => {
-      setSelectBreeds(body.results)
-    }, [])
-  })
+      .then(response => response.json())
+      .then(data => setBreeds(data))
+  }, [])
 
- async function submitButton(e) {
-  e.preventDefault()
-  if (!selectBreeds) {
-    return null
-  }
+  async function submitButton(e) {
+    e.preventDefault()
+    if (!selectBreeds) {
+      return
+    }
 
-  const breed = breeds.find(a => a.id === selectBreeds)
-  const response = await fetch(
-    `https://api.thecatapi.com/v1/images/search?limit=6&breed_ids=${selectBreeds}`
-  )
-
-   const images = await response.json()
+    const breed = breeds.find(b => b.id === selectBreeds)
+    const res = await fetch(
+      `https://api.thecatapi.com/v1/images/search?limit=6&breed_ids=${selectBreeds}`,
+      { headers: { 'x-api-key': API_KEY } }
+    )
+    const images = await res.json()
 
     setBreedInformation({ breed, images })
- }
+  }
 
   return (
-    <>
-      <div className = "app">
-        <h1>Cats</h1>
-        <form onSubmit={submitButton}>
-          <label>
+    <div className="app">
+      <h1>Cat Browser 🐱</h1>
+      <form onSubmit={submitButton}>
+        <label>
+          Select breed:
+          <select
+            value={selectBreeds}
+            onChange={e => setSelectBreeds(e.target.value)}
+          >
+            <option value="">-- Choose a breed --</option>
+            {breeds.map(b => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Filter by colour:
+          <input
+            type="text"
+            placeholder="e.g., white, black"
+            value={selectColour}
+            onChange={e => setSelectColour(e.target.value.toLowerCase())}
+          />
+        </label>
+        <button type="submit">View Breed</button>
+      </form>
 
-          </label>
-        </form>
-      </div>
-    </>
+      {breedInformation && (
+        <CatInformation
+          breed={breedInformation.breed}
+          images={breedInformation.images}
+          colour={selectColour}
+        />
+      )}
+    </div>
   )
 }
 
