@@ -1,4 +1,3 @@
-My first React Project.
+**Cat Browser**
 
-Select the Breed of cats and view some information about that particular breed. 
-
+Select the Breed of cats and view some information about that particular breed.
